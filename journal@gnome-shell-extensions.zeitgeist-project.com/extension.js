@@ -32,7 +32,7 @@ const Lang = imports.lang;
 const Signals = imports.signals;
 const St = imports.gi.St;
 const Mainloop = imports.mainloop;
-const Gettext = imports.gettext.domain('gnome-shell');
+const Gettext = imports.gettext.domain('zeitgeist');
 const _ = Gettext.gettext;
 const C_ = Gettext.pgettext;
 const Tp = imports.gi.TelepathyGLib;
@@ -1427,6 +1427,12 @@ const ShowRecentIcon = new Lang.Class({
         this.toggleButton._delegate = this;
 
         this.setChild(this.toggleButton);
+
+        this.toggleButton.set_hover(false);
+        if (this._iconActor)
+            this._iconActor.set_hover(false);
+        this.setLabelText(_("Show Recent Items"));
+
         this.toggleButton.label_actor = this.label;
     },
 
@@ -1450,14 +1456,17 @@ function init(metadata)
 
 
 function enable() {
+    if (journalView)
+        return;
+
     journalView = new JournalDisplay();
     let journalPage = Main.overview._viewSelector._addPage(journalView.actor, null, 'journal', null);
     journalPage.hide();
     let active = true;
     let showRecentIcon = new ShowRecentIcon();
     let showRecentButton = showRecentIcon.toggleButton;
+    Main.overview._dash._hookUpLabel(showRecentIcon);
     Main.overview._dash._box.insert_child_at_index(showRecentIcon.actor, 0);
-
 
     Main.overview.connect('showing', Lang.bind(this,
             function () {
@@ -1488,10 +1497,12 @@ function enable() {
 }
 
 function disable() {
+    if (!journalView)
+        return;
+
     /*Main.overview._viewSelector._tabBox.remove_actor(viewTab.title);
     Main.overview._viewSelector._pageArea.remove_actor(viewTab.page);
     Main.overview._viewSelector._tabs.splice(tabIndex, tabIndex);
     journalView.actor.destroy();
-    journalView = undefined
-    */
+    journalView = null;*/
 }
